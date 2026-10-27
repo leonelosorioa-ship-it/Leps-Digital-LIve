@@ -1,0 +1,67 @@
+@import "tailwindcss";
+
+@layer base {
+  body {
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+    background-color: #000000;
+    color: #ffffff;
+    user-select: none;
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  h1, h2, h3, h4, .font-display {
+    font-family: 'Space Grotesk', sans-serif;
+  }
+}
+
+@keyframes pulse-live {
+  0%, 100% {
+    transform: scale(1);
+    box-shadow: 0 0 10px rgba(229, 30, 226, 0.4);
+  }
+  50% {
+    transform: scale(1.05);
+    box-shadow: 0 0 20px rgba(229, 30, 226, 0.8), 0 0 30px rgba(229, 30, 226, 0.3);
+  }
+}
+
+@keyframes float-heart {
+  0% {
+    transform: translateY(0) scale(0.6) rotate(0deg);
+    opacity: 1;
+  }
+  50% {
+    transform: translateY(-130px) scale(1.2) rotate(12deg) translateX(-15px);
+    opacity: 0.9;
+  }
+  100% {
+    transform: translateY(-260px) scale(0.8) rotate(-18deg) translateX(20px);
+    opacity: 0;
+  }
+}
+
+@keyframes shine-slide {
+  0% { transform: translateX(-150%) skewX(-20deg); }
+  35%, 100% { transform: translateX(250%) skewX(-20deg); }
+}
+
+.animate-pulse-live {
+  animation: pulse-live 1.8s infinite ease-in-out;
+}
+
+.animate-float-heart {
+  animation: float-heart 1.7s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+}
+
+.animate-card-shine {
+  animation: shine-slide 4s infinite linear;
+}
+
+/* Custom scrollbar hiding */
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+.no-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}

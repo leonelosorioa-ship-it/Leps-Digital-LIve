@@ -1,0 +1,1432 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
+  <title>LEPS Live Shopping Simulator | Dark Tech 9:16</title>
+  <meta name="description" content="Simulador interactivo de Live Shopping mobile-first 9:16 para LEPS Software Solutions con LepsBot IA, checkout 1-Click y diseño Dark Tech." />
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  
+  <style>
+    :root {
+      --bg-black: #000000;
+      --bg-surface: #121216;
+      --bg-surface-trans: rgba(18, 18, 22, 0.78);
+      --bg-card: rgba(22, 22, 28, 0.90);
+      --neon-magenta: #E51EE2;
+      --neon-cyan: #0693E3;
+      --neon-magenta-glow: rgba(229, 30, 226, 0.45);
+      --neon-cyan-glow: rgba(6, 147, 227, 0.45);
+      --text-main: #FFFFFF;
+      --text-muted: #A0A0A0;
+      --danger: #FF3B30;
+      --success: #00E676;
+      --border-color: rgba(255, 255, 255, 0.12);
+      --border-neon: rgba(229, 30, 226, 0.35);
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      -webkit-tap-highlight-color: transparent;
+      user-select: none;
+    }
+
+    body {
+      background: radial-gradient(circle at 50% 15%, #180d28 0%, #08080c 55%, #000000 100%);
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+      color: var(--text-main);
+      min-height: 100vh;
+      min-height: 100dvh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      overflow-x: hidden;
+      padding: 16px;
+    }
+
+    /* Contenedor Mockup Smartphone iPhone */
+    .device-wrapper {
+      position: relative;
+      width: 100%;
+      max-width: 420px;
+      height: 864px;
+      max-height: 96vh;
+      background: #000000;
+      border-radius: 48px;
+      box-shadow: 
+        0 0 0 10px #1a1a22,
+        0 0 0 12px #2d2d38,
+        0 25px 60px rgba(0, 0, 0, 0.85),
+        0 0 45px var(--neon-magenta-glow),
+        0 0 35px var(--neon-cyan-glow);
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+      border: 1px solid rgba(255, 255, 255, 0.14);
+      transition: all 0.3s ease;
+    }
+
+    /* En pantallas móviles se adapta a 100% de la pantalla */
+    @media (max-width: 480px) {
+      body {
+        padding: 0;
+        background: #000000;
+      }
+      .device-wrapper {
+        max-width: 100%;
+        height: 100vh;
+        height: 100dvh;
+        max-height: 100dvh;
+        border-radius: 0;
+        box-shadow: none;
+        border: none;
+      }
+      .device-notch {
+        display: none !important;
+      }
+    }
+
+    /* Isla Dinámica / Notch de iPhone */
+    .device-notch {
+      position: absolute;
+      top: 10px;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 116px;
+      height: 26px;
+      background: #000000;
+      border-radius: 20px;
+      z-index: 50;
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 9px;
+      pointer-events: none;
+    }
+    .device-camera {
+      width: 10px;
+      height: 10px;
+      background: #0b1527;
+      border-radius: 50%;
+      border: 1.5px solid #1e293b;
+      box-shadow: inset 0 0 4px #0693E3;
+    }
+    .device-sensor {
+      width: 5px;
+      height: 5px;
+      background: #111;
+      border-radius: 50%;
+    }
+
+    /* Video Viewport 9:16 */
+    .video-viewport {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      z-index: 1;
+      overflow: hidden;
+      background: #08080c;
+    }
+
+    .video-stream {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      transform: scale(1.02);
+      filter: saturate(1.1) contrast(1.05);
+    }
+
+    .video-overlay-gradient {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: linear-gradient(
+        180deg, 
+        rgba(0, 0, 0, 0.72) 0%, 
+        rgba(0, 0, 0, 0.1) 22%, 
+        rgba(0, 0, 0, 0.1) 50%, 
+        rgba(0, 0, 0, 0.85) 80%, 
+        #000000 100%
+      );
+      pointer-events: none;
+      z-index: 2;
+    }
+
+    /* Canvas Interactivo de Respaldo */
+    #fallbackCanvas {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      z-index: 1;
+      display: none;
+    }
+
+    /* Capa UI Superpuesta */
+    .ui-layer {
+      position: relative;
+      z-index: 10;
+      height: 100%;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      padding: 44px 14px 14px;
+      pointer-events: none;
+    }
+
+    .ui-interactive {
+      pointer-events: auto;
+    }
+
+    /* HEADER SUPERIOR FLOTANTE */
+    .stream-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+      width: 100%;
+    }
+
+    .channel-info {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      background: var(--bg-surface-trans);
+      backdrop-filter: blur(14px);
+      padding: 4px 12px 4px 5px;
+      border-radius: 30px;
+      border: 1px solid var(--border-neon);
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5);
+    }
+
+    .channel-avatar {
+      width: 32px;
+      height: 32px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, var(--neon-magenta), var(--neon-cyan));
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-family: 'Space Grotesk', sans-serif;
+      font-weight: 800;
+      font-size: 10px;
+      color: #fff;
+      letter-spacing: -0.5px;
+      box-shadow: 0 0 12px var(--neon-magenta-glow);
+    }
+
+    .channel-meta {
+      display: flex;
+      flex-direction: column;
+      line-height: 1.1;
+    }
+
+    .channel-title {
+      font-family: 'Space Grotesk', sans-serif;
+      font-size: 11.5px;
+      font-weight: 700;
+      color: #ffffff;
+      letter-spacing: 0.2px;
+    }
+
+    .channel-stats {
+      font-size: 9.5px;
+      color: var(--neon-cyan);
+      display: flex;
+      align-items: center;
+      gap: 3px;
+    }
+
+    .header-actions {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .live-badge {
+      display: flex;
+      align-items: center;
+      gap: 5px;
+      background: rgba(229, 30, 226, 0.25);
+      border: 1px solid var(--neon-magenta);
+      color: #fff;
+      font-size: 9.5px;
+      font-weight: 700;
+      padding: 4px 9px;
+      border-radius: 20px;
+      text-transform: uppercase;
+      letter-spacing: 0.6px;
+      box-shadow: 0 0 14px var(--neon-magenta-glow);
+      animation: pulseLive 1.8s infinite ease-in-out;
+    }
+
+    .pulse-dot {
+      width: 6px;
+      height: 6px;
+      background: #ff0055;
+      border-radius: 50%;
+      box-shadow: 0 0 8px #ff0055;
+    }
+
+    @keyframes pulseLive {
+      0%, 100% { transform: scale(1); opacity: 1; }
+      50% { transform: scale(1.05); opacity: 0.85; box-shadow: 0 0 20px var(--neon-magenta); }
+    }
+
+    .spectator-chip {
+      background: rgba(0, 0, 0, 0.6);
+      backdrop-filter: blur(10px);
+      border: 1px solid var(--border-color);
+      font-size: 11px;
+      font-weight: 600;
+      padding: 4px 8px;
+      border-radius: 20px;
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      color: #f0f0f0;
+      font-variant-numeric: tabular-nums;
+    }
+
+    .icon-btn {
+      width: 30px;
+      height: 30px;
+      border-radius: 50%;
+      background: rgba(0, 0, 0, 0.6);
+      backdrop-filter: blur(10px);
+      border: 1px solid var(--border-color);
+      color: white;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      font-size: 12px;
+      transition: all 0.2s;
+    }
+    .icon-btn:hover {
+      border-color: var(--neon-cyan);
+    }
+    .icon-btn:active {
+      transform: scale(0.9);
+    }
+
+    /* ACCIONES LATERALES DERECHA (Like, Share, WhatsApp) */
+    .stream-side-actions {
+      position: absolute;
+      right: 14px;
+      bottom: 215px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 15px;
+      z-index: 20;
+    }
+
+    .side-action-btn {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 3px;
+      background: transparent;
+      border: none;
+      cursor: pointer;
+      color: #fff;
+    }
+
+    .side-icon-circle {
+      width: 44px;
+      height: 44px;
+      border-radius: 50%;
+      background: rgba(18, 18, 22, 0.72);
+      backdrop-filter: blur(12px);
+      border: 1px solid rgba(255, 255, 255, 0.16);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 18px;
+      box-shadow: 0 4px 16px rgba(0, 0, 0, 0.45);
+      transition: transform 0.15s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    }
+    .side-action-btn:active .side-icon-circle {
+      transform: scale(1.25);
+    }
+    .side-label {
+      font-size: 10px;
+      font-weight: 600;
+      color: #e5e5ea;
+      text-shadow: 0 1px 4px rgba(0, 0, 0, 0.9);
+      font-variant-numeric: tabular-nums;
+    }
+    .like-btn .side-icon-circle {
+      border-color: rgba(229, 30, 226, 0.5);
+      color: #ff2d87;
+    }
+
+    /* CONTENEDOR DE CORAZONES FLOTANTES */
+    .hearts-box {
+      position: absolute;
+      bottom: 150px;
+      right: 20px;
+      width: 80px;
+      height: 320px;
+      pointer-events: none;
+      z-index: 100;
+      overflow: visible;
+    }
+
+    .flying-heart {
+      position: absolute;
+      bottom: 0;
+      right: 14px;
+      font-size: 24px;
+      user-select: none;
+      animation: floatUp 1.8s forwards cubic-bezier(0.22, 1, 0.36, 1);
+    }
+
+    @keyframes floatUp {
+      0% {
+        transform: translateY(0) scale(0.6) rotate(0deg);
+        opacity: 1;
+      }
+      50% {
+        transform: translateY(-130px) scale(1.3) rotate(15deg) translateX(-18px);
+        opacity: 0.9;
+      }
+      100% {
+        transform: translateY(-270px) scale(0.8) rotate(-22deg) translateX(22px);
+        opacity: 0;
+      }
+    }
+
+    /* SECCIÓN INFERIOR: CHAT + PRODUCTO + INPUT */
+    .bottom-section {
+      width: 100%;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      position: relative;
+      z-index: 15;
+    }
+
+    /* CAJA DE CHAT */
+    .chat-container {
+      height: 155px;
+      max-height: 155px;
+      overflow-y: auto;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      padding-right: 52px;
+      mask-image: linear-gradient(to bottom, transparent 0%, black 20%);
+      -webkit-mask-image: linear-gradient(to bottom, transparent 0%, black 20%);
+      scrollbar-width: none;
+    }
+    .chat-container::-webkit-scrollbar {
+      display: none;
+    }
+
+    .chat-bubble {
+      background: rgba(18, 18, 22, 0.70);
+      backdrop-filter: blur(12px);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      padding: 6px 11px;
+      border-radius: 14px;
+      font-size: 11.5px;
+      line-height: 1.35;
+      color: #ffffff;
+      width: fit-content;
+      max-width: 95%;
+      animation: slideInChat 0.25s ease-out;
+    }
+
+    @keyframes slideInChat {
+      from { opacity: 0; transform: translateY(8px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    .chat-bubble .user {
+      font-weight: 700;
+      color: var(--neon-cyan);
+      margin-right: 5px;
+    }
+
+    .chat-bubble.bot-bubble {
+      background: linear-gradient(135deg, rgba(229, 30, 226, 0.22), rgba(6, 147, 227, 0.22));
+      border: 1px solid var(--neon-magenta);
+      box-shadow: 0 0 16px rgba(229, 30, 226, 0.3);
+    }
+    .chat-bubble.bot-bubble .user {
+      color: var(--neon-magenta);
+      display: inline-flex;
+      align-items: center;
+      gap: 3px;
+    }
+
+    /* TARJETA DE PRODUCTO FLOTANTE CON OFERTA ACTIVA */
+    .product-live-card {
+      background: var(--bg-card);
+      backdrop-filter: blur(16px);
+      border: 1px solid var(--border-neon);
+      border-radius: 18px;
+      padding: 10px 12px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.8), 0 0 20px var(--neon-magenta-glow);
+      position: relative;
+      overflow: hidden;
+    }
+
+    .product-live-card::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: -120%;
+      width: 60%;
+      height: 100%;
+      background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.15), transparent);
+      transform: skewX(-25deg);
+      animation: cardShine 4s infinite ease-in-out;
+      pointer-events: none;
+    }
+
+    @keyframes cardShine {
+      0%, 65% { left: -120%; }
+      100% { left: 180%; }
+    }
+
+    .product-thumb {
+      width: 58px;
+      height: 58px;
+      border-radius: 12px;
+      object-fit: cover;
+      background: #1e1e26;
+      border: 1px solid rgba(255, 255, 255, 0.15);
+      flex-shrink: 0;
+    }
+
+    .product-info {
+      flex: 1;
+      min-width: 0;
+    }
+
+    .product-tag {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      background: rgba(229, 30, 226, 0.22);
+      color: #ff52eb;
+      font-size: 9px;
+      font-weight: 700;
+      padding: 2px 6px;
+      border-radius: 6px;
+      margin-bottom: 2px;
+      letter-spacing: 0.3px;
+    }
+
+    .product-title {
+      font-size: 12.5px;
+      font-weight: 700;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      color: #ffffff;
+      font-family: 'Space Grotesk', sans-serif;
+    }
+
+    .product-pricing {
+      display: flex;
+      align-items: baseline;
+      gap: 6px;
+      margin-top: 1px;
+    }
+
+    .current-price {
+      font-size: 15px;
+      font-weight: 800;
+      color: var(--neon-cyan);
+      font-family: 'Space Grotesk', sans-serif;
+      font-variant-numeric: tabular-nums;
+    }
+
+    .old-price {
+      font-size: 11px;
+      color: var(--text-muted);
+      text-decoration: line-through;
+      font-variant-numeric: tabular-nums;
+    }
+
+    .discount-pill {
+      font-size: 9px;
+      background: #ff0055;
+      color: #fff;
+      padding: 1px 4px;
+      border-radius: 4px;
+      font-weight: 700;
+    }
+
+    .stock-chip {
+      font-size: 10px;
+      color: #ff7675;
+      font-weight: 600;
+      display: flex;
+      align-items: center;
+      gap: 3px;
+      margin-top: 2px;
+      font-variant-numeric: tabular-nums;
+    }
+
+    .btn-buy-pulse {
+      background: linear-gradient(135deg, var(--neon-magenta), #b800b5);
+      color: #fff;
+      border: none;
+      padding: 9px 12px;
+      border-radius: 12px;
+      font-weight: 700;
+      font-size: 11px;
+      cursor: pointer;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      box-shadow: 0 4px 18px var(--neon-magenta-glow);
+      transition: transform 0.15s, box-shadow 0.15s;
+      white-space: nowrap;
+      flex-shrink: 0;
+      font-family: 'Space Grotesk', sans-serif;
+    }
+    .btn-buy-pulse:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 6px 22px rgba(229, 30, 226, 0.7);
+    }
+    .btn-buy-pulse:active {
+      transform: scale(0.96);
+    }
+
+    /* BARRA INFERIOR DE CHAT */
+    .chat-input-bar {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      width: 100%;
+    }
+
+    .input-wrapper {
+      flex: 1;
+      position: relative;
+      display: flex;
+      align-items: center;
+    }
+
+    .input-field {
+      width: 100%;
+      background: rgba(18, 18, 22, 0.78);
+      backdrop-filter: blur(14px);
+      border: 1px solid var(--border-color);
+      border-radius: 25px;
+      padding: 10px 42px 10px 16px;
+      color: #fff;
+      font-size: 12px;
+      font-family: inherit;
+      outline: none;
+      transition: border-color 0.2s, box-shadow 0.2s;
+    }
+    .input-field:focus {
+      border-color: var(--neon-cyan);
+      box-shadow: 0 0 14px var(--neon-cyan-glow);
+    }
+    .input-field::placeholder {
+      color: #7b7b8a;
+    }
+
+    .send-btn {
+      position: absolute;
+      right: 6px;
+      width: 30px;
+      height: 30px;
+      border-radius: 50%;
+      background: var(--neon-cyan);
+      border: none;
+      color: #000;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      font-weight: bold;
+      transition: transform 0.15s;
+    }
+    .send-btn:active {
+      transform: scale(0.88);
+    }
+
+    .heart-tap-btn {
+      width: 38px;
+      height: 38px;
+      border-radius: 50%;
+      background: rgba(18, 18, 22, 0.78);
+      backdrop-filter: blur(12px);
+      border: 1px solid rgba(229, 30, 226, 0.4);
+      color: #fff;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      flex-shrink: 0;
+      font-size: 18px;
+      box-shadow: 0 0 12px rgba(229, 30, 226, 0.3);
+      transition: transform 0.15s;
+    }
+    .heart-tap-btn:active {
+      transform: scale(0.85);
+    }
+
+    /* DRAWER CHECKOUT 1-CLICK DESLIZANTE DESDE ABAJO */
+    .checkout-drawer {
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      width: 100%;
+      background: #111116;
+      border-top: 2px solid var(--neon-magenta);
+      border-radius: 26px 26px 0 0;
+      z-index: 60;
+      box-shadow: 0 -15px 40px rgba(0, 0, 0, 0.9), 0 0 30px var(--neon-magenta-glow);
+      transform: translateY(105%);
+      transition: transform 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+      padding: 16px 20px 24px;
+      pointer-events: auto;
+      max-height: 88%;
+      overflow-y: auto;
+    }
+    .checkout-drawer.active {
+      transform: translateY(0%);
+    }
+
+    .drawer-handle {
+      width: 44px;
+      height: 5px;
+      background: rgba(255, 255, 255, 0.25);
+      border-radius: 10px;
+      margin: 0 auto 12px;
+      cursor: pointer;
+    }
+
+    .drawer-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      margin-bottom: 12px;
+    }
+    .drawer-header h3 {
+      font-family: 'Space Grotesk', sans-serif;
+      font-size: 17px;
+      color: #fff;
+      font-weight: 700;
+    }
+    .drawer-header p {
+      font-size: 11px;
+      color: var(--neon-cyan);
+    }
+    .btn-close-drawer {
+      background: rgba(255, 255, 255, 0.1);
+      border: none;
+      color: #fff;
+      width: 26px;
+      height: 26px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      font-size: 12px;
+    }
+
+    .selection-label {
+      font-size: 11px;
+      font-weight: 600;
+      text-transform: uppercase;
+      color: var(--text-muted);
+      letter-spacing: 0.5px;
+      margin: 10px 0 6px;
+    }
+    .variant-group {
+      display: flex;
+      gap: 8px;
+      margin-bottom: 8px;
+    }
+    .variant-pill {
+      padding: 6px 14px;
+      border-radius: 10px;
+      font-size: 12px;
+      font-weight: 600;
+      background: #1a1a22;
+      border: 1px solid var(--border-color);
+      color: #d1d1d6;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    .variant-pill.active {
+      background: rgba(6, 147, 227, 0.16);
+      border-color: var(--neon-cyan);
+      color: #fff;
+      box-shadow: 0 0 10px var(--neon-cyan-glow);
+    }
+
+    .form-group {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      margin-top: 10px;
+    }
+    .form-input {
+      width: 100%;
+      background: #181820;
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      border-radius: 10px;
+      padding: 10px 12px;
+      color: #fff;
+      font-size: 12px;
+      outline: none;
+      font-family: inherit;
+      transition: border-color 0.2s;
+    }
+    .form-input:focus {
+      border-color: var(--neon-magenta);
+    }
+
+    .payment-select {
+      background: #181820;
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      border-radius: 10px;
+      padding: 10px 12px;
+      color: #fff;
+      font-size: 12px;
+      outline: none;
+      cursor: pointer;
+    }
+
+    .btn-confirm-order {
+      width: 100%;
+      margin-top: 14px;
+      padding: 13px;
+      border-radius: 12px;
+      background: linear-gradient(135deg, var(--neon-magenta) 0%, var(--neon-cyan) 100%);
+      color: #fff;
+      border: none;
+      font-weight: 700;
+      font-size: 13px;
+      cursor: pointer;
+      letter-spacing: 0.5px;
+      box-shadow: 0 4px 20px rgba(229, 30, 226, 0.45);
+      transition: transform 0.15s;
+      font-family: 'Space Grotesk', sans-serif;
+    }
+    .btn-confirm-order:active {
+      transform: scale(0.97);
+    }
+
+    /* TOAST DE COMPRA CONFIRMADA */
+    .toast-notification {
+      position: absolute;
+      top: 50px;
+      left: 50%;
+      transform: translateX(-50%) translateY(-20px);
+      background: #0d1e16;
+      border: 1px solid var(--success);
+      color: #fff;
+      padding: 10px 16px;
+      border-radius: 20px;
+      font-size: 11.5px;
+      font-weight: 600;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      box-shadow: 0 10px 25px rgba(0, 230, 118, 0.35);
+      opacity: 0;
+      pointer-events: none;
+      z-index: 100;
+      transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    }
+    .toast-notification.active {
+      opacity: 1;
+      transform: translateX(-50%) translateY(0);
+    }
+
+    .whatsapp-badge-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      background: #25d366;
+      color: #000;
+      font-weight: 700;
+      font-size: 10.5px;
+      padding: 4px 8px;
+      border-radius: 10px;
+      text-decoration: none;
+      margin-top: 5px;
+    }
+
+    .quick-chips-row {
+      display: flex;
+      gap: 6px;
+      overflow-x: auto;
+      padding-bottom: 4px;
+      scrollbar-width: none;
+    }
+    .quick-chips-row::-webkit-scrollbar {
+      display: none;
+    }
+    .quick-chip {
+      background: rgba(18, 18, 22, 0.7);
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      color: #c0c0d0;
+      font-size: 10px;
+      padding: 3px 8px;
+      border-radius: 12px;
+      white-space: nowrap;
+      cursor: pointer;
+    }
+    .quick-chip:hover {
+      border-color: var(--neon-cyan);
+      color: #fff;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Mockup Frame -->
+  <div class="device-wrapper" id="deviceScreen">
+    
+    <!-- Isla Dinámica -->
+    <div class="device-notch">
+      <div class="device-camera"></div>
+      <div class="device-sensor"></div>
+    </div>
+
+    <!-- Toast Notificación de Pedido -->
+    <div class="toast-notification" id="orderToast">
+      <span>✅</span>
+      <span>¡Compra confirmada! Te contactamos al WhatsApp.</span>
+    </div>
+
+    <!-- Video Viewport 9:16 -->
+    <div class="video-viewport">
+      <video 
+        id="liveVideo" 
+        class="video-stream" 
+        autoplay 
+        loop 
+        muted 
+        playsinline 
+        webkit-playsinline
+        poster="data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='400' height='700' fill='%2308080c'><rect width='400' height='700'/><text x='50%25' y='50%25' fill='%23E51EE2' font-family='sans-serif' font-size='18' text-anchor='middle'>CONECTANDO LIVE SHOPPING LEPS...</text></svg>"
+      >
+        <source src="https://assets.mixkit.co/videos/preview/mixkit-fashion-model-in-neon-light-40431-large.mp4" type="video/mp4" />
+      </video>
+
+      <!-- Fallback canvas interactivo en caso de desconexión -->
+      <canvas id="fallbackCanvas"></canvas>
+      <div class="video-overlay-gradient"></div>
+    </div>
+
+    <!-- Contenedor Corazones Voladores -->
+    <div class="hearts-box" id="heartsContainer"></div>
+
+    <!-- UI Layer -->
+    <div class="ui-layer">
+      
+      <!-- HEADER SUPERIOR -->
+      <div class="stream-header ui-interactive">
+        <div class="channel-info">
+          <div class="channel-avatar">LEPS</div>
+          <div class="channel-meta">
+            <span class="channel-title">LEPS Digital Store</span>
+            <span class="channel-stats">⚡ Oficial · Colombia</span>
+          </div>
+        </div>
+
+        <div class="header-actions">
+          <div class="live-badge">
+            <div class="pulse-dot"></div>
+            <span>EN VIVO</span>
+          </div>
+
+          <div class="spectator-chip">
+            <span>👁️</span>
+            <span id="viewerCounter">214</span>
+          </div>
+
+          <button class="icon-btn" id="btnMuteToggle" title="Audio">
+            <span id="muteIcon">🔇</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- ACCIONES LATERALES DERECHA -->
+      <div class="stream-side-actions ui-interactive">
+        <button class="side-action-btn like-btn" id="btnLikeStream" title="Dar Like">
+          <div class="side-icon-circle">
+            ❤️
+          </div>
+          <span class="side-label" id="likesCountLabel">4.8k</span>
+        </button>
+
+        <button class="side-action-btn" id="btnQuickShare" title="Compartir Transmisión">
+          <div class="side-icon-circle">
+            🚀
+          </div>
+          <span class="side-label">Compartir</span>
+        </button>
+
+        <button class="side-action-btn" id="btnWhatsAppDirect" title="Hablar con Asesor">
+          <div class="side-icon-circle" style="border-color: #25d366; color: #25d366;">
+            💬
+          </div>
+          <span class="side-label">Asesor</span>
+        </button>
+      </div>
+
+      <!-- SECCIÓN INFERIOR -->
+      <div class="bottom-section ui-interactive">
+        
+        <!-- Live Chat Box -->
+        <div class="chat-container" id="chatScroll">
+          <div class="chat-bubble">
+            <span class="user">Moderador:</span> ¡Bienvenidos al Live Shopping LEPS! Descuento activo -30% OFF en vivo. 🔥
+          </div>
+        </div>
+
+        <!-- Chips de Preguntas Frecuentes Rápidas -->
+        <div class="quick-chips-row">
+          <button class="quick-chip" onclick="askQuickPrompt('¿Tienen envíos contraentrega a Medellín?')">📍 Envíos a Medellín</button>
+          <button class="quick-chip" onclick="askQuickPrompt('¿Cómo sé qué talla elegir?')">📏 Guía de Tallas</button>
+          <button class="quick-chip" onclick="askQuickPrompt('¿Qué métodos de pago reciben?')">💳 Métodos de Pago</button>
+          <button class="quick-chip" onclick="askQuickPrompt('¿Tienen garantía?')">🛡️ Garantía</button>
+        </div>
+
+        <!-- Tarjeta de Producto Flotante -->
+        <div class="product-live-card">
+          <img 
+            class="product-thumb" 
+            src="https://images.unsplash.com/photo-1518770660439-4636190af475?auto=format&fit=crop&w=200&q=80" 
+            alt="Solución LEPS"
+            referrerpolicy="no-referrer"
+          />
+          <div class="product-info">
+            <div class="product-tag">🔥 OFERTA EN VIVO <span class="discount-pill">-30%</span></div>
+            <div class="product-title">Faja Reloj de Arena / Tech LEPS</div>
+            <div class="product-pricing">
+              <span class="current-price">$149.000 COP</span>
+              <span class="old-price">$210.000</span>
+            </div>
+            <div class="stock-chip">
+              <span>⏳</span> <span id="stockQty">¡Solo quedan 4 unidades!</span>
+            </div>
+          </div>
+          <button class="btn-buy-pulse" id="btnOpenCheckout">
+            <span>COMPRAR</span>
+            <span style="font-size: 8px; opacity: 0.9;">1-CLICK</span>
+          </button>
+        </div>
+
+        <!-- Barra de Input del Chat -->
+        <div class="chat-input-bar">
+          <div class="input-wrapper">
+            <input 
+              type="text" 
+              id="userChatInput" 
+              class="input-field" 
+              placeholder="Pregúntale a LepsBot (envíos, tallas...)" 
+              maxlength="100"
+            />
+            <button class="send-btn" id="btnSendChat">➤</button>
+          </div>
+          <button class="heart-tap-btn" id="btnHeartTap" title="Lanzar Amor">💖</button>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- MODAL DRAWER CHECKOUT 1-CLICK -->
+    <div class="checkout-drawer" id="checkoutDrawer">
+      <div class="drawer-handle" id="closeHandle"></div>
+      
+      <div class="drawer-header">
+        <div>
+          <h3>Checkout 1-Click Rápido</h3>
+          <p>Envío Express Gratis a toda Colombia</p>
+        </div>
+        <button class="btn-close-drawer" id="btnCloseDrawer">✕</button>
+      </div>
+
+      <div class="selection-label">Selecciona tu Talla:</div>
+      <div class="variant-group" id="sizeGroup">
+        <button type="button" class="variant-pill active" data-val="S">S (60-70cm)</button>
+        <button type="button" class="variant-pill" data-val="M">M (71-82cm)</button>
+        <button type="button" class="variant-pill" data-val="L">L (83-95cm)</button>
+      </div>
+
+      <div class="selection-label">Selecciona el Color:</div>
+      <div class="variant-group" id="colorGroup">
+        <button type="button" class="variant-pill active" data-val="Negro Cyber">Negro Cyber</button>
+        <button type="button" class="variant-pill" data-val="Beige Nude">Beige Nude</button>
+      </div>
+
+      <form id="quickCheckoutForm" class="form-group" onsubmit="return false;">
+        <input type="text" class="form-input" id="orderName" placeholder="Nombre y Apellidos" required />
+        <input type="tel" class="form-input" id="orderPhone" placeholder="Teléfono / WhatsApp (ej. 3197036711)" required />
+        <input type="text" class="form-input" id="orderAddress" placeholder="Ciudad y Dirección de Envío" required />
+        
+        <div class="selection-label" style="margin-top: 4px;">Método de Pago:</div>
+        <select class="payment-select" id="paymentMethod">
+          <option value="contraentrega">📦 Pago Contra Entrega (Pagas al recibir en casa)</option>
+          <option value="nequi">🟣 Nequi / Daviplata / PSE</option>
+          <option value="tarjeta">💳 Tarjeta Débito / Crédito</option>
+        </select>
+
+        <button type="submit" class="btn-confirm-order" id="btnSubmitOrder">
+          CONFIRMAR PEDIDO • $149.000 COP
+        </button>
+      </form>
+    </div>
+
+  </div>
+
+  <script>
+    /* ==========================================================================
+       LEPS SOFTWARE SOLUTIONS - LIVE SHOPPING ARCHITECTURE ENGINE (VANILLA JS)
+       ========================================================================== */
+    
+    // Estado Global del Simulador
+    const state = {
+      viewers: 214,
+      likes: 4820,
+      stock: 4,
+      selectedSize: 'S',
+      selectedColor: 'Negro Cyber',
+      isMuted: true,
+      autoMessages: [
+        { user: "Camila R.", text: "¿Tienen envíos contraentrega a Medellín?" },
+        { user: "Juan Pablo", text: "¡Acabo de pedir la mía! Ojalá llegue rápido 🚀" },
+        { user: "Valentina G.", text: "¿Para cintura de 68cm qué talla recomiendan?" },
+        { user: "Esteban V.", text: "Brutal la plataforma LEPS, qué fluidez 🔥" },
+        { user: "Carolina M.", text: "¿Viene con garantía por si no me queda?" },
+        { user: "Andrés B.", text: "Pagué por Nequi super fácil." },
+        { user: "Laura Sofía", text: "¿El material es transpirable para usar todo el día?" },
+        { user: "Diego F.", text: "¡Quedan pocas unidades apúrenle!" }
+      ]
+    };
+
+    // DOM Elements
+    const viewerCounterEl = document.getElementById('viewerCounter');
+    const likesCountLabelEl = document.getElementById('likesCountLabel');
+    const heartsContainerEl = document.getElementById('heartsContainer');
+    const chatScrollEl = document.getElementById('chatScroll');
+    const userChatInputEl = document.getElementById('userChatInput');
+    const btnSendChatEl = document.getElementById('btnSendChat');
+    const btnLikeStreamEl = document.getElementById('btnLikeStream');
+    const btnHeartTapEl = document.getElementById('btnHeartTap');
+    const liveVideoEl = document.getElementById('liveVideo');
+    const btnMuteToggleEl = document.getElementById('btnMuteToggle');
+    const muteIconEl = document.getElementById('muteIcon');
+    const checkoutDrawerEl = document.getElementById('checkoutDrawer');
+    const btnOpenCheckoutEl = document.getElementById('btnOpenCheckout');
+    const btnCloseDrawerEl = document.getElementById('btnCloseDrawer');
+    const closeHandleEl = document.getElementById('closeHandle');
+    const quickCheckoutFormEl = document.getElementById('quickCheckoutForm');
+    const orderToastEl = document.getElementById('orderToast');
+    const stockQtyEl = document.getElementById('stockQty');
+
+    // Sintetizador de Efectos de Sonido Web Audio API (Sin dependencias externas)
+    let audioCtx = null;
+    function playTone(freq, type, duration) {
+      if (state.isMuted) return;
+      try {
+        if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        if (audioCtx.state === 'suspended') audioCtx.resume();
+        const osc = audioCtx.createOscillator();
+        const gain = audioCtx.createGain();
+        osc.type = type || 'sine';
+        osc.frequency.setValueAtTime(freq, audioCtx.currentTime);
+        gain.gain.setValueAtTime(0.08, audioCtx.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + duration);
+        osc.connect(gain);
+        gain.connect(audioCtx.destination);
+        osc.start();
+        osc.stop(audioCtx.currentTime + duration);
+      } catch (e) {
+        // Audio policy ignore
+      }
+    }
+
+    // 1. FLUCTUACIÓN ORGÁNICA DE ESPECTADORES (180 - 240)
+    setInterval(() => {
+      const delta = Math.floor(Math.random() * 7) - 3;
+      state.viewers = Math.max(180, Math.min(240, state.viewers + delta));
+      viewerCounterEl.textContent = state.viewers;
+    }, 3800);
+
+    // 2. CORAZONES FLOTANTES Y CONTADOR DE LIKES
+    function spawnHeart() {
+      const heartIcons = ['❤️', '💖', '🔥', '✨', '💜', '⚡'];
+      const heart = document.createElement('div');
+      heart.className = 'flying-heart';
+      heart.textContent = heartIcons[Math.floor(Math.random() * heartIcons.length)];
+      
+      const randomX = Math.random() * 40 - 20;
+      heart.style.transform = `translateX(${randomX}px)`;
+      heartsContainerEl.appendChild(heart);
+
+      state.likes++;
+      likesCountLabelEl.textContent = (state.likes / 1000).toFixed(1) + 'k';
+      playTone(520 + Math.random() * 100, 'triangle', 0.15);
+
+      setTimeout(() => heart.remove(), 1800);
+    }
+
+    btnLikeStreamEl.addEventListener('click', () => {
+      for (let i = 0; i < 3; i++) {
+        setTimeout(spawnHeart, i * 85);
+      }
+    });
+    btnHeartTapEl.addEventListener('click', spawnHeart);
+
+    // 3. MENSAJES DE CHAT EN VIVO Y LÓGICA DE AGENTE IA LEPSBOT
+    function appendChatMessage(user, text, isBot = false) {
+      const bubble = document.createElement('div');
+      bubble.className = `chat-bubble ${isBot ? 'bot-bubble' : ''}`;
+      
+      if (isBot) {
+        bubble.innerHTML = `<span class=\"user\">🤖 LepsBot:</span> ${text}`;
+      } else {
+        bubble.innerHTML = `<span class=\"user\">${user}:</span> ${text}`;
+      }
+
+      chatScrollEl.appendChild(bubble);
+      chatScrollEl.scrollTo({ top: chatScrollEl.scrollHeight, behavior: 'smooth' });
+    }
+
+    // Mensajes automáticos de espectadores simulados
+    let autoIndex = 0;
+    setInterval(() => {
+      if (autoIndex < state.autoMessages.length) {
+        const item = state.autoMessages[autoIndex];
+        appendChatMessage(item.user, item.text);
+        autoIndex = (autoIndex + 1) % state.autoMessages.length;
+      }
+    }, 5500);
+
+    // Motor IA LepsBot
+    function processAiAgentResponse(userQuery) {
+      const query = userQuery.toLowerCase();
+      let responseText = "";
+      let showWhatsAppCta = false;
+
+      if (query.includes('envio') || query.includes('envíos') || query.includes('ciudad') || query.includes('medellin') || query.includes('bogota') || query.includes('cali')) {
+        responseText = "¡Sí! Contamos con Envíos Express Gratis a toda Colombia y Pago Contra Entrega en la puerta de tu casa. 📦🚚";
+      } else if (query.includes('talla') || query.includes('medida') || query.includes('cintura') || query.includes('grande') || query.includes('pequeñ')) {
+        responseText = "Guía recomendada: S (cintura 60-70cm), M (71-82cm) y L (83-95cm). Si estás entre dos tallas, te sugerimos elegir la superior para máxima comodidad.";
+      } else if (query.includes('pago') || query.includes('pagar') || query.includes('nequi') || query.includes('tarjeta') || query.includes('contraentrega')) {
+        responseText = "Aceptamos Pago Contra Entrega en efectivo, Nequi, Daviplata, PSE y Tarjetas de Crédito con cifrado bancario seguro.";
+      } else if (query.includes('garantia') || query.includes('garantía') || query.includes('cambio') || query.includes('devolucion')) {
+        responseText = "Tienes 30 días de garantía total por confección o cambio de talla. ¡Tu compra con LEPS es 100% segura!";
+      } else if (query.includes('precio') || query.includes('costo') || query.includes('vale') || query.includes('descuento')) {
+        responseText = "¡Hoy durante el Live está en $149.000 COP (-30% OFF de su precio normal $210.000)! Haz clic en 'Comprar' para reservarla.";
+      } else {
+        responseText = "¡Excelente consulta! Nuestro equipo especializado de LEPS puede asesorarte de inmediato 1 a 1 por WhatsApp:";
+        showWhatsAppCta = true;
+      }
+
+      setTimeout(() => {
+        appendChatMessage("LepsBot", responseText, true);
+        playTone(680, 'sine', 0.2);
+
+        if (showWhatsAppCta) {
+          setTimeout(() => {
+            const ctaBubble = document.createElement('div');
+            ctaBubble.className = 'chat-bubble bot-bubble';
+            ctaBubble.innerHTML = `<span class=\"user\">🤖 LepsBot:</span> <br><a class=\"whatsapp-badge-pill\" href=\"https://wa.me/573197036711?text=Hola%20LEPS,%20estoy%20en%20el%20Live%20y%20tengo%20esta%20duda:%20${encodeURIComponent(userQuery)}\" target=\"_blank\">🟢 Chatear con Asesor (+57 319 703 6711)</a>`;
+            chatScrollEl.appendChild(ctaBubble);
+            chatScrollEl.scrollTo({ top: chatScrollEl.scrollHeight, behavior: 'smooth' });
+          }, 400);
+        }
+      }, 1400);
+    }
+
+    function handleSendChat() {
+      const text = userChatInputEl.value.trim();
+      if (!text) return;
+      appendChatMessage("Tú", text);
+      userChatInputEl.value = "";
+      processAiAgentResponse(text);
+    }
+
+    btnSendChatEl.addEventListener('click', handleSendChat);
+    userChatInputEl.addEventListener('keypress', (e) => {
+      if (e.key === 'Enter') handleSendChat();
+    });
+
+    window.askQuickPrompt = function(promptText) {
+      userChatInputEl.value = promptText;
+      handleSendChat();
+    };
+
+    // 4. MUTE / UNMUTE Y VIDEO FALLBACK CANVAS
+    btnMuteToggleEl.addEventListener('click', () => {
+      state.isMuted = !state.isMuted;
+      liveVideoEl.muted = state.isMuted;
+      muteIconEl.textContent = state.isMuted ? '🔇' : '🔊';
+      if (!state.isMuted) {
+        liveVideoEl.play().catch(() => {});
+        playTone(440, 'sine', 0.15);
+      }
+    });
+
+    // Fallback Canvas de Partículas Cyberpunk si el video de Mixkit falla o no carga
+    (function initFallbackCanvas() {
+      const canvas = document.getElementById('fallbackCanvas');
+      const ctx = canvas.getContext('2d');
+      function resize() {
+        canvas.width = canvas.parentElement.clientWidth;
+        canvas.height = canvas.parentElement.clientHeight;
+      }
+      resize();
+      window.addEventListener('resize', resize);
+
+      let dots = Array.from({ length: 40 }, () => ({
+        x: Math.random() * canvas.width,
+        y: Math.random() * canvas.height,
+        r: Math.random() * 2 + 1,
+        vx: (Math.random() - 0.5) * 0.7,
+        vy: (Math.random() - 0.5) * 0.7,
+        c: Math.random() > 0.5 ? '#E51EE2' : '#0693E3'
+      }));
+
+      function render() {
+        ctx.fillStyle = '#0a0a10';
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+        
+        ctx.strokeStyle = 'rgba(6, 147, 227, 0.1)';
+        for (let y = 0; y < canvas.height; y += 45) {
+          ctx.beginPath();
+          ctx.moveTo(0, y);
+          ctx.lineTo(canvas.width, y);
+          ctx.stroke();
+        }
+
+        dots.forEach(d => {
+          d.x += d.vx;
+          d.y += d.vy;
+          if (d.x < 0 || d.x > canvas.width) d.vx *= -1;
+          if (d.y < 0 || d.y > canvas.height) d.vy *= -1;
+          ctx.beginPath();
+          ctx.arc(d.x, d.y, d.r, 0, Math.PI * 2);
+          ctx.fillStyle = d.c;
+          ctx.fill();
+        });
+        requestAnimationFrame(render);
+      }
+
+      liveVideoEl.addEventListener('error', () => {
+        canvas.style.display = 'block';
+        render();
+      });
+    })();
+
+    // 5. COMPARTIR Y WHATSAPP DIRECTO
+    document.getElementById('btnQuickShare').addEventListener('click', () => {
+      if (navigator.share) {
+        navigator.share({
+          title: 'Live Shopping LEPS Software',
+          text: '¡Conéctate al Live Shopping con -30% OFF en vivo!',
+          url: window.location.href
+        }).catch(() => {});
+      } else {
+        navigator.clipboard.writeText(window.location.href);
+        appendChatMessage("Sistema", "Enlace de la transmisión copiado al portapapeles. 📋");
+      }
+    });
+
+    document.getElementById('btnWhatsAppDirect').addEventListener('click', () => {
+      window.open('https://wa.me/573197036711?text=Hola%20LEPS,%20estoy%20en%20el%20Live%20Shopping%20y%20deseo%20asesor%C3%ADa', '_blank');
+    });
+
+    // 6. CHECKOUT 1-CLICK MODAL DRAWER
+    function openCheckout() {
+      checkoutDrawerEl.classList.add('active');
+      playTone(550, 'sine', 0.15);
+    }
+    function closeCheckout() {
+      checkoutDrawerEl.classList.remove('active');
+    }
+
+    btnOpenCheckoutEl.addEventListener('click', openCheckout);
+    btnCloseDrawerEl.addEventListener('click', closeCheckout);
+    closeHandleEl.addEventListener('click', closeCheckout);
+
+    // Selección de Variantes
+    document.querySelectorAll('#sizeGroup .variant-pill').forEach(pill => {
+      pill.addEventListener('click', function() {
+        document.querySelectorAll('#sizeGroup .variant-pill').forEach(p => p.classList.remove('active'));
+        this.classList.add('active');
+        state.selectedSize = this.dataset.val;
+        playTone(400, 'sine', 0.08);
+      });
+    });
+
+    document.querySelectorAll('#colorGroup .variant-pill').forEach(pill => {
+      pill.addEventListener('click', function() {
+        document.querySelectorAll('#colorGroup .variant-pill').forEach(p => p.classList.remove('active'));
+        this.classList.add('active');
+        state.selectedColor = this.dataset.val;
+        playTone(420, 'sine', 0.08);
+      });
+    });
+
+    // Envío del Pedido
+    quickCheckoutFormEl.addEventListener('submit', (e) => {
+      e.preventDefault();
+      const name = document.getElementById('orderName').value.trim();
+      const phone = document.getElementById('orderPhone').value.trim();
+      const address = document.getElementById('orderAddress').value.trim();
+
+      if (!name || !phone || !address) return;
+
+      // Disminución de stock
+      if (state.stock > 1) {
+        state.stock--;
+        stockQtyEl.textContent = `¡Solo quedan ${state.stock} unidades!`;
+      } else {
+        stockQtyEl.textContent = `¡ÚLTIMA UNIDAD DISPONIBLE!`;
+      }
+
+      closeCheckout();
+      quickCheckoutFormEl.reset();
+
+      // Mostrar Toast Flotante
+      orderToastEl.classList.add('active');
+      playTone(880, 'triangle', 0.35);
+      setTimeout(() => {
+        orderToastEl.classList.remove('active');
+      }, 4500);
+
+      // Social Proof en el Chat
+      setTimeout(() => {
+        appendChatMessage("Sistema LEPS", `🎉 ${name.split(' ')[0]} acaba de comprar (Talla ${state.selectedSize} / ${state.selectedColor})`);
+        for (let i = 0; i < 5; i++) {
+          setTimeout(spawnHeart, i * 90);
+        }
+      }, 800);
+    });
+  </script>
+</body>
+</html>

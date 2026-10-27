@@ -1,0 +1,6 @@
+{
+  "name": "LEPS Live Shopping Simulator",
+  "description": "Simulador interactivo de Live Shopping mobile-first 9:16 con Dark Tech Minimalist UI, agente de ventas IA LepsBot, checkout 1-Click y video en bucle para LEPS Software Solutions.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
